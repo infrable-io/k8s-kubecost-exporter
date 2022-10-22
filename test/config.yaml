@@ -1,0 +1,29 @@
+server:
+  port: 9090
+  path: "/metrics"
+  update_interval: "1m"
+
+api:
+  host: "localhost"
+  port: 9003
+  path: "/allocation/compute"
+  parameters:
+    window: "1m"
+    aggregate: "pod"
+
+metrics:
+  namespace: kubecost
+  names:
+    - name: metric_a
+      field: "field_a"
+    - name: metric_b
+      field: "field_b"
+    - name: metric_c
+      field: "field_c"
+  labels:
+    - name: label_a
+      key: "key1"
+    - name: label_b
+      key: "key2"
+    - name: label_c
+      key: "key3"

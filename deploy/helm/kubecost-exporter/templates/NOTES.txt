@@ -1,0 +1,9 @@
+{{ .Chart.Name }} has been installed.
+
+Kubecost cost allocation metrics are available on port {{ .Values.service.port }} of the {{ include "kubecost-exporter.name" . }} service after configuring port forwarding:
+
+  $ kubectl --namespace {{ .Release.Namespace }} port-forward deployment/kubecost-exporter {{ .Values.service.port }}:9090
+
+Example:
+
+  $ curl http://localhost:9090/metrics

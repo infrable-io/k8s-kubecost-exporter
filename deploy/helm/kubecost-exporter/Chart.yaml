@@ -1,0 +1,7 @@
+apiVersion: v2
+name: kubecost-exporter
+description: |
+  A Helm chart for a Kubernetes application for exporting Kubecost cost allocation metrics
+type: application
+version: 0.1.0 # Chart version
+appVersion: "0.1.0" # Application version

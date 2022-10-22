@@ -1,0 +1,28 @@
+# Ensure metrics endpoint is available.
+#
+# To run Helm chart tests, execute the following:
+#
+#   ```
+#   $ helm install kubecost-exporter deploy/helm/kubecost-exporter --namespace kubecost-exporter
+#   $ helm test kubecost-exporter --namespace kubecost-exporter
+#   ```
+#
+# For documentation on Helm chart tests, see the following:
+#   * https://helm.sh/docs/topics/chart_tests
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "kubecost-exporter.fullname" . }}-test-metrics-endpoint"
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "kubecost-exporter.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+spec:
+  containers:
+    - name: wget
+      image: busybox
+      command: ['wget']
+      args: ['{{ include "kubecost-exporter.fullname" . }}:{{ .Values.service.port }}/metrics']
+  restartPolicy: Never

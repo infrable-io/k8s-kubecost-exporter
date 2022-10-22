@@ -1,0 +1,246 @@
+###############################################################################
+# HTTP Server Configuration
+#
+# Configuration for the HTTP server.
+###############################################################################
+server:
+  # Port the HTTP server listens and serves on.
+  port: 9090
+  # Path of the metrics HTTP endpoint. Applications that can extract custom
+  # metrics from OpenMetrics endpoints (Prometheus, Datadog, New Relic etc.)
+  # should be configured to scrape this endpoint.
+  path: "/metrics"
+  # How frequently to update Prometheus metrics with cost allocation data
+  # retrieved from the Allocation API.
+  update_interval: "1m"
+
+###############################################################################
+# Kubecost API Configuration
+#
+# Cost allocation data is retrieved from the Kubecost Allocation API.
+###############################################################################
+api:
+  # Host of the Kubecost installation. The following provides various host
+  # configurations:
+  #
+  # When running the HTTP server locally, the Kubecost API is accessible from
+  # localhost:
+  #
+  #   host: "localhost"
+  #   port: 9003
+  #
+  # When running the HTTP server via Docker, the DNS name host.docker.internal
+  # resolves to an IP address allowing network access to the host. The Kubecost
+  # API is accessible from the following DNS name:
+  #
+  #   host: "host.docker.internal"
+  #   port: 9003
+  #
+  # When running the HTTP server on Kubernetes, the Kubecost Pod
+  # (kubecost-cost-analyzer) is accessible via the service endpoint:
+  #
+  #   host: "kubecost-cost-analyzer.kubecost.svc.cluster.local"
+  #   port: 9003
+  host: "localhost"
+  # Port of the Kubecost installation. Kubecost deploys both a backend
+  # (cost-model) and frontend (frontend) container. The Allocation API is
+  # accessible from both containers, however, for maximum interoperability the
+  # backend container is preferred. The default port of the backend
+  # (cost-model) container is 9003.
+  port: 9003
+  # Path of the Allocation API. When querying the cost-model container directly
+  # (ex. :9003), the `/model` part of the URI should be removed. See the
+  # Allocation API documentation for available endpoints:
+  #   * https://docs.kubecost.com/apis/apis/allocation
+  path: "/allocation/compute"
+  # Map of query parameters. Query parameters take the form of key-value pairs
+  # (ex key: value) and are appended to the Allocation API query.
+  #
+  # For a full list of query parameters, see the Allocation API documentation:
+  #   * https://docs.kubecost.com/apis/apis/allocation#querying
+  #
+  # With exception of "window" (see note below), all parameters are appended to
+  # the Allocation API query as-is. No validation occurs.
+  parameters:
+    # Durations (such as 30m, 12h, 7d) are calculated as a precise start and
+    # end time and added to the query as a comma-separated RFC3339 date pair
+    # for the previous minute:
+    #
+    #   Example:
+    #
+    #     Given the current time of 2006-01-02T15:04:05Z07:00, a window of 1m,
+    #     30m, and 1h would yield the following date pairs:
+    #
+    #       * 1m: 2006-01-02T15:03:00,2006-01-02T15:04:00
+    #       * 30m: 2006-01-02T14:34:00,2006-01-02T15:04:00
+    #       * 1h: 2006-01-02T14:04:00,2006-01-02T15:04:00
+    #
+    # This ensures that the window is the exact specified duration, since the
+    # Kubecost Allocation API uses an end time of when the request was made
+    # when the 'window' parameter contains a duration.
+    window: "1m"
+    aggregate: "pod"
+
+###############################################################################
+# Prometheus Metrics Configuration
+#
+# Cost allocation data is retrieved from the Allocation API and translated into
+# Prometheus Metrics.
+###############################################################################
+metrics:
+  # "namespace" and "subsystem" are components of the fully-qualified name of
+  # the Prometheus metric (created by joining these components with "_" with
+  # each element specified in "names").
+  #
+  #   Example:
+  #
+  #     kubecost_v1_cpu_cores
+  #
+  # Both "namespace" and "subsystem" are optional.
+  #
+  # Note that the fully-qualified name of the metric must be a valid Prometheus
+  # metric name.
+  #
+  # See: https://prometheus.io/docs/concepts/data_model
+  namespace: kubecost
+  subsystem: experimental
+  # List of Prometheus metric names and `Allocation` struct field names for the
+  # corresponding value.
+  #
+  # Each element in "names" comprises a map where "name" is the name of the
+  # Prometheus metric and "field" is the name of the field in the `Allocation`
+  # struct.
+  #
+  # See: client.go for `Allocation` struct.
+  names:
+    - name: cpu_cores
+      field: "CPUCores"
+    - name: cpu_core_request_average
+      field: "CPUCoreRequestAverage"
+    - name: cpu_core_usage_average
+      field: "CPUCoreUsageAverage"
+    - name: cpu_core_hours
+      field: "CPUCoreHours"
+    - name: cpu_cost
+      field: "CPUCost"
+    - name: cpu_cost_adjustment
+      field: "CPUCostAdjustment"
+    - name: cpu_efficiency
+      field: "CPUEfficiency"
+    - name: gpu_count
+      field: "GPUCount"
+    - name: gpu_hours
+      field: "GPUHours"
+    - name: gpu_cost
+      field: "GPUCost"
+    - name: gpu_cost_adjustment
+      field: "GPUCostAdjustment"
+    - name: network_transfer_bytes
+      field: "NetworkTransferBytes"
+    - name: network_receive_bytes
+      field: "NetworkReceiveBytes"
+    - name: network_cost
+      field: "NetworkCost"
+    - name: network_cost_adjustment
+      field: "NetworkCostAdjustment"
+    - name: load_balancer_cost
+      field: "LoadBalancerCost"
+    - name: load_balancer_cost_adjustment
+      field: "LoadBalancerCostAdjustment"
+    - name: pv_bytes
+      field: "PVBytes"
+    - name: pv_byte_hours
+      field: "PVByteHours"
+    - name: pv_cost
+      field: "PVCost"
+    # TODO: Handle PVs
+    # - name: pvs
+    #   field: "PVs"
+    - name: pv_cost_adjustment
+      field: "PVCostAdjustment"
+    - name: ram_bytes
+      field: "RAMBytes"
+    - name: ram_byte_request_average
+      field: "RAMByteRequestAverage"
+    - name: ram_byte_usage_average
+      field: "RAMByteUsageAverage"
+    - name: ram_byte_hours
+      field: "RAMByteHours"
+    - name: ram_cost
+      field: "RAMCost"
+    - name: ram_cost_adjustment
+      field: "RAMCostAdjustment"
+    - name: ram_efficiency
+      field: "RAMEfficiency"
+    - name: shared_cost
+      field: "SharedCost"
+    - name: external_cost
+      field: "ExternalCost"
+    - name: total_cost
+      field: "TotalCost"
+    - name: total_efficiency
+      field: "TotalEfficiency"
+    # TODO: Handle RawAllocationOnly
+    # - name: raw_allocationonly
+    #   field: "RawAllocationOnly"
+  # List of Prometheus metric labels and Kubecost Allocation API response keys
+  # for the corresponding value.
+  #
+  # Each element in "labels" comprises a map where "name" is the name of the
+  # Prometheus metric label and "key" is the dot-separated name of the key in
+  # the Allocation API response.
+  #
+  # For the Kubecost `AllocationProperties`, `AllocationLabels`, and
+  # `AllocationAnnotations` structs, see pkg/kubecost/allocationprops.go in the
+  # OpenCost GitHub repository:
+  #   - https://github.com/opencost/opencost
+  #
+  # NOTE: Kubecost replaces all illegal Prometheus label characters with "_"
+  # for all keys in the Allocation API response.
+  #
+  #   Regex: [^a-zA-Z0-9_]
+  #
+  # See pkg/prom/metrics.go in the OpenCost GitHub repository:
+  #   - https://github.com/opencost/opencost
+  #
+  # NOTE: "name" must be a valid Prometheus metric label name:
+  #
+  #   > Label names may contain ASCII letters, numbers, as well as underscores.
+  #     They must match the regex [a-zA-Z_][a-zA-Z0-9_]*. Label names beginning
+  #     with __ are reserved for internal use.
+  #
+  # See: https://prometheus.io/docs/concepts/data_model
+  #
+  # /!\ WARNING /!\
+  # Using labels with high cardinality may exceed metric quotas.
+  #
+  # NOTE: List and map type labels are sorted by element and map key,
+  # respectively.
+  labels:
+    - name: cluster
+      key: "cluster"
+    - name: node
+      key: "node"
+    - name: container
+      key: "container"
+    - name: controller
+      key: "controller"
+    - name: controllerKind
+      key: "controllerKind"
+    - name: namespace
+      key: "namespace"
+    - name: pod
+      key: "pod"
+    - name: services
+      key: "services"
+    - name: providerID
+      key: "providerID"
+    - name: labels
+      key: "labels"
+    - name: annotation
+      key: "annotation"
+    # Example
+    - name: labels_app
+      key: "labels.app"
+    - name: labels_name
+      key: "labels.name"

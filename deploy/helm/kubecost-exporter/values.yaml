@@ -1,0 +1,172 @@
+# The container image can be built locally and made available to Minikube by
+# running the following:
+#
+#   $ eval $(minikube -p minikube docker-env)
+#   $ docker build -t kubecost-exporter:latest .
+#
+# then by setting the following:
+#
+#   image:
+#     registry: ""
+#     repository: kubecost-exporter
+#     tag: latest
+#   imagePullPolicy: IfNotPresent
+#
+# By default, the kubelet tries to pull each image from the specified
+# registry. However, if the imagePullPolicy property of the container is set
+# to IfNotPresent or Never, then a local image is used (preferentially or
+# exclusively, respectively).
+image:
+  registry: ""
+  repository: kubecost-exporter
+  tag: latest
+imagePullPolicy: IfNotPresent
+
+deployment:
+  replicas: 1
+  annotations: {}
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+service:
+  # New Relic's Prometheus OpenMetrics integration automatically discovers
+  # which targets to scrape.
+  #
+  # By default, New Relic will scrape Kubernetes Pods and Services with the
+  # annotation or label "prometheus.io/scrape".
+  #
+  # To specify the port and endpoint path to be used, specify the following
+  # annotations or labels:
+  #   * prometheus.io/port
+  #   * prometheus.io/path
+  #
+  # NOTE: Annotations take precedence over labels.
+  #
+  # Configure Prometheus OpenMetrics integrations:
+  #   * https://docs.newrelic.com/docs/infrastructure/prometheus-integrations
+  annotations:
+    # The label used to identify scrapable targets. This value is set by
+    # 'scrape_enabled_label' on the Prometheus OpenMetrics integration
+    # configuration. Default is "prometheus.io/scrape".
+    newrelic.io/scrape: "true"
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "9090"
+    prometheus.io/path: "/metrics"
+  type: ClusterIP
+  port: 9090
+
+config:
+  server:
+    port: 9090
+    path: "/metrics"
+    update_interval: "1m"
+  api:
+    host: "kubecost-cost-analyzer.kubecost.svc.cluster.local"
+    port: 9003
+    path: "/allocation/compute"
+    parameters:
+      window: "1m"
+      aggregate: "pod"
+  metrics:
+    namespace: kubecost
+    subsystem: experimental
+    names:
+      - name: cpu_cores
+        field: "CPUCores"
+      - name: cpu_core_request_average
+        field: "CPUCoreRequestAverage"
+      - name: cpu_core_usage_average
+        field: "CPUCoreUsageAverage"
+      - name: cpu_core_hours
+        field: "CPUCoreHours"
+      - name: cpu_cost
+        field: "CPUCost"
+      - name: cpu_cost_adjustment
+        field: "CPUCostAdjustment"
+      - name: cpu_efficiency
+        field: "CPUEfficiency"
+      - name: gpu_count
+        field: "GPUCount"
+      - name: gpu_hours
+        field: "GPUHours"
+      - name: gpu_cost
+        field: "GPUCost"
+      - name: gpu_cost_adjustment
+        field: "GPUCostAdjustment"
+      - name: network_transfer_bytes
+        field: "NetworkTransferBytes"
+      - name: network_receive_bytes
+        field: "NetworkReceiveBytes"
+      - name: network_cost
+        field: "NetworkCost"
+      - name: network_cost_adjustment
+        field: "NetworkCostAdjustment"
+      - name: load_balancer_cost
+        field: "LoadBalancerCost"
+      - name: load_balancer_cost_adjustment
+        field: "LoadBalancerCostAdjustment"
+      - name: pv_bytes
+        field: "PVBytes"
+      - name: pv_byte_hours
+        field: "PVByteHours"
+      - name: pv_cost
+        field: "PVCost"
+      - name: pv_cost_adjustment
+        field: "PVCostAdjustment"
+      - name: ram_bytes
+        field: "RAMBytes"
+      - name: ram_byte_request_average
+        field: "RAMByteRequestAverage"
+      - name: ram_byte_usage_average
+        field: "RAMByteUsageAverage"
+      - name: ram_byte_hours
+        field: "RAMByteHours"
+      - name: ram_cost
+        field: "RAMCost"
+      - name: ram_cost_adjustment
+        field: "RAMCostAdjustment"
+      - name: ram_efficiency
+        field: "RAMEfficiency"
+      - name: shared_cost
+        field: "SharedCost"
+      - name: external_cost
+        field: "ExternalCost"
+      - name: total_cost
+        field: "TotalCost"
+      - name: total_efficiency
+        field: "TotalEfficiency"
+    labels:
+      - name: kubecost_cluster
+        key: "cluster"
+      - name: kubecost_node
+        key: "node"
+      - name: kubecost_container
+        key: "container"
+      - name: kubecost_controller
+        key: "controller"
+      - name: kubecost_controllerKind
+        key: "controllerKind"
+      - name: kubecost_namespace
+        key: "namespace"
+      - name: kubecost_pod
+        key: "pod"
+      - name: kubecost_services
+        key: "services"
+      - name: kubecost_providerID
+        key: "providerID"
+      # /!\ WARNING /!\
+      # 'labels' is a high cardinality label!
+      #
+      # It's use may exceed the max unique timeseries (cardinality) per metric
+      # name per day (100k).
+      # - name: kubecost_labels
+      #   key: "labels"
+      - name: kubecost_annotation
+        key: "annotation"
+
+labels: {}
