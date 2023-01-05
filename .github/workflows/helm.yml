@@ -29,9 +29,6 @@ jobs:
         run: |
           helm lint deploy/helm/kubecost-exporter
           helm package deploy/helm/kubecost-exporter
-          helm install kubecost-exporter kubecost-exporter-*.tgz
-          # debug
-          sleep 30
-          kubectl describe pods -l "app.kubernetes.io/name=kubecost-exporter"
+          helm install kubecost-exporter kubecost-exporter-*.tgz --wait
       - name: "Test Helm chart installation"
         run: helm test kubecost-exporter
