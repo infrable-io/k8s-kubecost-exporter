@@ -19,6 +19,12 @@ jobs:
       - uses: medyagh/setup-minikube@latest
       - name: "Install Helm"
         run: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+      - name: "Build container image"
+        run: |
+          export SHELL=/bin/bash
+          # To point your shell to minikube's docker-daemon, run:
+          eval $(minikube -p minikube docker-env)
+          docker build -t kubecost-exporter:latest .
       - name: "Lint, package and install Helm chart"
         run: |
           helm lint deploy/helm/kubecost-exporter
