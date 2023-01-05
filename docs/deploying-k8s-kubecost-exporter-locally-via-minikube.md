@@ -8,7 +8,7 @@ For deploying Kubecost locally via Minikube, see the following documentation:
 **Build the Docker image**:
 
 ```bash
-# Point your shell to Minikube's docker-daemon.
+# To point your shell to minikube's docker-daemon, run:
 $ eval $(minikube -p minikube docker-env)
 $ docker build -t kubecost-exporter:latest .
 ```

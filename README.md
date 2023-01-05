@@ -1,7 +1,9 @@
 # K8s Kubecost Exporter
 
-[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/infrable-io/k8s-opencost-exporter/blob/master/LICENSE)
+[![MIT License](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/infrable-io/k8s-kubecost-exporter/blob/master/LICENSE)
 [![Maintained by Infrable](https://img.shields.io/badge/Maintained%20by-Infrable-000000)](https://infrable.io)
+[![GitHub Actions - Go](https://github.com/infrable-io/k8s-kubecost-exporter/actions/workflows/go.yml/badge.svg)](https://github.com/infrable-io/k8s-kubecost-exporter/actions/workflows/go.yml)
+[![GitHub Actions - Helm](https://github.com/infrable-io/k8s-kubecost-exporter/actions/workflows/helm.yml/badge.svg)](https://github.com/infrable-io/k8s-kubecost-exporter/actions/workflows/helm.yml)
 
 k8s-kubecost-exporter is a Kubernetes application that exposes cost allocation metrics retrieved from Kubecost.
 
