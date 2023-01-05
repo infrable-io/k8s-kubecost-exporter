@@ -1,0 +1,24 @@
+name: Go
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      # NOTE: You should use the checkout action any time your workflow will
+      # run against the repository's code.
+      # See: https://github.com/marketplace/actions/checkout
+      - uses: actions/checkout@v3
+      # See: https://github.com/marketplace/actions/setup-go-environment
+      - uses: actions/setup-go@v3
+        with:
+          go-version: 1.19
+    - name: "Build"
+      run: go build -v ./...
+    - name: "Test"
+      run: go test -v ./...
