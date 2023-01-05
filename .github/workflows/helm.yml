@@ -21,8 +21,8 @@ jobs:
         run: curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
       - name: "Lint, package and install Helm chart"
         run: |
-          helm lint
-          helm package .
+          helm lint deploy/helm/kubecost-exporter
+          helm package deploy/helm/kubecost-exporter
           helm install kubecost-exporter kubecost-exporter-*.tgz --wait
       - name: "Test Helm chart installation"
         run: helm test kubecost-exporter
